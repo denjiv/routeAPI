@@ -73,7 +73,7 @@ endpnt = 'Space Needle , Seattle, WA 98105'
 
 mode = 'driving'
 
-key = "AIzaSyDkz2jz9hwcIyOo5XB0g1H1NljoVD1hhlQ"
+key = 0
 
 
 route = routeInfo(startpnt, endpnt, key)
