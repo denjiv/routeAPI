@@ -11,23 +11,29 @@ class routePoint(object):
         print("\n" + repr(self.lat) + "\t" + repr(self.lon) + "\t" + repr(self.ele) + "\t" + repr(self.start) + " " + repr(self.end))
 
 
-def routeInfo(startpnt, endpnt, key, mode='driving', plot=False, plotfile='mymap.html'):
+def routeInfo(startpnt, endpnt, key, mode='driving', plot=True, plotfile='mymap.html'):
     import googlemaps
     import json
     import polyline
     client = googlemaps.Client(key)
-    dirResult = client.directions(startpnt, endpnt, mode, waypoints=None, alternatives=False, avoid=None, language=None, units=None, region=None, departure_time=None, arrival_time=None, optimize_waypoints=True, transit_mode=None, transit_routing_preference=None, traffic_model=None)
+    dirResult = client.directions(startpnt, endpnt, mode, waypoints=None,
+    alternatives=False, avoid=None, language=None, units=None, region=None,
+    departure_time='now', arrival_time=None, optimize_waypoints=True,
+    transit_mode=None, transit_routing_preference=None, traffic_model='pessimistic')
 
+    print json.dumps(dirResult, indent=4, sort_keys=True)
 
-    #print json.dumps(dirResult, indent=4, sort_keys=True)
-
-    routePoints = [];
-
+    # Intiating all arrays
+    # stores routePoint data structure
+    routePoints = []
+    # For elevation calculation
     points = []
-    #latitudes1 = []
-    #longitudes1 = []
+    # For  plotting on the map
+    latitudes1 = []
+    longitudes1 = []
     samples = 0;
 
+    # Get lat and lon points from the dictionary
     for item in dirResult[0]['legs'][0]['steps']:
         code = str(item['polyline']['points'])
         poly = polyline.decode(code)
@@ -38,26 +44,17 @@ def routeInfo(startpnt, endpnt, key, mode='driving', plot=False, plotfile='mymap
             routePoints.append(tmpPoint)
             samples = samples + 1
             points.append(coord)
-            #latitudes1.append(coord[0])
-        	#longitudes1.append(coord[1])
+            latitudes1.append(coord[0])
+            longitudes1.append(coord[1])
 
-    #print routePoints
-
+    # Get the elevation points
     eleResult = client.elevation_along_path(points, samples)
-    #elevation = []
-    #for point in eleResult:
     for i in range(0, samples):
-        #elevation.append(point['elevation'])
         routePoints[i].ele = eleResult[i]['elevation']
         if (i == samples-1):
             routePoints[i].end = True
 
-
-
-    #for point in routePoints:
-    #    point.display()
-
-
+    # Plot html map. Saved in mymap.html
     if plot:
         import gmplot
         gmap = gmplot.GoogleMapPlotter(47.6682253, -122.3195193, 16)
@@ -67,17 +64,14 @@ def routeInfo(startpnt, endpnt, key, mode='driving', plot=False, plotfile='mymap
 
     return routePoints
 
-
+# Testing the route
+# Make into a test method later.
 startpnt = '5336 8th Ave NE, Seattle, WA 98105'
 endpnt = 'Space Needle , Seattle, WA 98105'
-
 mode = 'driving'
-
-key = 0
-
-
+key = "0"
 route = routeInfo(startpnt, endpnt, key)
-
+# Print as a table
 import texttable as tt
 tab = tt.Texttable()
 x = [[]] # The empty row will have the header
